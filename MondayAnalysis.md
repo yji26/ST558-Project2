@@ -4,6 +4,7 @@ Yun Ji
 7/3/2020
 
   - [Data Set Information](#data-set-information)
+  - [Filter for Monday Data](#filter-for-monday-data)
 
 ## Data Set Information
 
@@ -42,4 +43,28 @@ choose to remove `rate_negative_words`.
 ``` r
 newsData <- newsData %>%
   select(!url & !timedelta & !is_weekend & !rate_negative_words)
+```
+
+## Filter for Monday Data
+
+Next I filter for the day of week, then remove the `weekday_is_*`
+columns.
+
+``` r
+dayOfWeek <- params$day
+dayColumn <- paste0("weekday_is_", tolower(dayOfWeek))
+
+newsDataFiltered <- newsData %>%
+  filter((!!as.symbol(dayColumn)) == 1) %>%
+  select(!starts_with("weekday_is_"))
+```
+
+Finally I split the resulting data into training and testing sets.
+
+``` r
+set.seed(seed)
+train <- sample(1:nrow(newsDataFiltered), size = nrow(newsDataFiltered)*0.7)
+test <- dplyr::setdiff(1:nrow(newsDataFiltered), train)
+newsDataTrain <- newsDataFiltered[train, ]
+newsDataTest <- newsDataFiltered[test, ]
 ```
