@@ -5,6 +5,7 @@ Yun Ji
 
   - [Data Set Information](#data-set-information)
   - [Filter for Monday Data](#filter-for-monday-data)
+  - [Summary of Training Data](#summary-of-training-data)
 
 ## Data Set Information
 
@@ -68,3 +69,66 @@ test <- dplyr::setdiff(1:nrow(newsDataFiltered), train)
 newsDataTrain <- newsDataFiltered[train, ]
 newsDataTest <- newsDataFiltered[test, ]
 ```
+
+## Summary of Training Data
+
+The training data will not be the same from one day of week to another,
+but certain observations hold across all.
+
+First, we can examine the distribution of the target variable `shares`.
+
+``` r
+g <- ggplot(data = newsDataTrain, aes(x = shares))
+g + geom_histogram(bins = 50)
+```
+
+![](MondayAnalysis_files/figure-gfm/shares%20histogram-1.png)<!-- -->
+
+Values of `shares` appear to follow a power-law distribution where a few
+very popular articles receive an outsized share of views. Therefore for
+regression it may be better to transform the target variable using a
+logarithmic function.
+
+``` r
+newsDataTrain <- newsDataTrain %>%
+  mutate(shares = log10(shares))
+
+newsDataTest <- newsDataTest %>%
+  mutate(shares = log10(shares))
+
+g <- ggplot(data = newsDataTrain, aes(x = shares))
+g + geom_histogram(bins = 50)
+```
+
+![](MondayAnalysis_files/figure-gfm/target%20transformation-1.png)<!-- -->
+
+The range of values for the predictor columns vary: some columns such as
+`global_subjectivity` are proportions and are limited to values between
+0 and 1, some indicator values like `data_channel_is_world` only have
+values 0 or 1, and others like `n_tokens_content` are raw counts which
+are natural numbers with no theoretical upper bound.
+
+``` r
+g <- ggplot(data = newsDataTrain, aes(x = global_subjectivity))
+g + geom_histogram(bins = 10)
+```
+
+![](MondayAnalysis_files/figure-gfm/predictor%20histograms-1.png)<!-- -->
+
+``` r
+g <- ggplot(data = newsDataTrain, aes(x = data_channel_is_world))
+g + geom_histogram(bins = 2)
+```
+
+![](MondayAnalysis_files/figure-gfm/predictor%20histograms-2.png)<!-- -->
+
+``` r
+g <- ggplot(data = newsDataTrain, aes(x = n_tokens_content))
+g + geom_histogram(bins = 50)
+```
+
+![](MondayAnalysis_files/figure-gfm/predictor%20histograms-3.png)<!-- -->
+
+Because of this, when selecting for models, it is advised to standardize
+(that is, center and scale) predictor values prior to fitting the
+models.
