@@ -85,3 +85,48 @@ g + geom_histogram(bins = 50)
 
 Because of this, when selecting for models, it is advised to standardize (that is, center and scale) predictor values prior to fitting the models.
 
+## Modeling and Cross-Validation
+Two regression models are fitted to the training data: a multiple linear regression model and a non-linear Random Forest regression model. To tune these models, I perform three repeated 5-fold cross-validations from the `caret` package. Cross-validation is used to limit overfitting on the training data, as in each trial one of the folds is held out as a validation set while the remaining folds are combined and used to train. Besides centering and scaling, the linear regression model uses the package default options, while for the Random Forest model, I specified possible tree depths to be 3, 5 or 10, as I found that deep trees in conjunction with repeated CV took up a lot of computation time on my PC.
+
+```{r model fitting}
+set.seed(seed)
+trctrl <- trainControl(method = "repeatedcv", number = 5, repeats = 3)
+
+lm_fit <- train(shares ~ ., 
+                data = newsDataTrain, 
+                method = "lm",
+                trControl = trctrl,
+                preProcess = c("center", "scale")
+)
+
+rf_fit <- train(shares ~ ., 
+                data = newsDataTrain, 
+                method = "rf",
+                trControl = trctrl,
+                preProcess = c("center", "scale"),
+                tuneGrid = expand.grid(mtry = c(3,5,10))
+)
+```
+
+Comparing the performance of the models on the training set, we get the following:
+```{r model training performance}
+lm_fit$results
+
+rf_fit$results
+```
+
+The model with higher `Rsquared` value and lower `RMSE` value is the better performer on the training data (which model is better may vary depending on the day of week used). However, the real test comes when the fitted models are evaluated for prediction accuracy on the testing data set.
+
+## Model Test Performance
+
+```{r model testing performance}
+newsLmPred <- predict(lm_fit, newdata = newsDataTest)
+lm_mspe <- mean((newsDataTest$shares - newsLmPred)^2)
+lm_mspe
+
+newsRfPred <- predict(rf_fit, newdata = newsDataTest)
+rf_mspe <- mean((newsDataTest$shares - newsRfPred)^2)
+rf_mspe
+```
+
+Here we compare the mean-square prediction error on the log-scaled target variable `shares`: the multiple linear regression model has a MSPE of `r round(lm_mspe, 5)` and the Random Forest regression model has a MSPE of `r round(rf_mspe, 5)`. The model with lower MSPE is the better performer on the testing data set.

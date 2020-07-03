@@ -4,7 +4,7 @@ Yun Ji
 7/3/2020
 
   - [Data Set Information](#data-set-information)
-  - [Filter for Monday Data](#filter-for-monday-data)
+  - [Filter for Thursday Data](#filter-for-thursday-data)
   - [Summary of Training Data](#summary-of-training-data)
   - [Modeling and Cross-Validation](#modeling-and-cross-validation)
   - [Model Test Performance](#model-test-performance)
@@ -48,7 +48,7 @@ newsData <- newsData %>%
   select(!url & !timedelta & !is_weekend & !rate_negative_words)
 ```
 
-## Filter for Monday Data
+## Filter for Thursday Data
 
 Next I filter for the day of week, then remove the `weekday_is_*`
 columns.
@@ -84,7 +84,7 @@ g <- ggplot(data = newsDataTrain, aes(x = shares))
 g + geom_histogram(bins = 50)
 ```
 
-![](MondayAnalysis_files/figure-gfm/shares%20histogram-1.png)<!-- -->
+![](ThursdayAnalysis_files/figure-gfm/shares%20histogram-1.png)<!-- -->
 
 Values of `shares` appear to follow a power-law distribution where a few
 very popular articles receive an outsized share of views. Therefore for
@@ -102,7 +102,7 @@ g <- ggplot(data = newsDataTrain, aes(x = shares))
 g + geom_histogram(bins = 50)
 ```
 
-![](MondayAnalysis_files/figure-gfm/target%20transformation-1.png)<!-- -->
+![](ThursdayAnalysis_files/figure-gfm/target%20transformation-1.png)<!-- -->
 
 The range of values for the predictor columns vary: some columns such as
 `global_subjectivity` are proportions and are limited to values between
@@ -115,21 +115,21 @@ g <- ggplot(data = newsDataTrain, aes(x = global_subjectivity))
 g + geom_histogram(bins = 10)
 ```
 
-![](MondayAnalysis_files/figure-gfm/predictor%20histograms-1.png)<!-- -->
+![](ThursdayAnalysis_files/figure-gfm/predictor%20histograms-1.png)<!-- -->
 
 ``` r
 g <- ggplot(data = newsDataTrain, aes(x = data_channel_is_world))
 g + geom_histogram(bins = 2)
 ```
 
-![](MondayAnalysis_files/figure-gfm/predictor%20histograms-2.png)<!-- -->
+![](ThursdayAnalysis_files/figure-gfm/predictor%20histograms-2.png)<!-- -->
 
 ``` r
 g <- ggplot(data = newsDataTrain, aes(x = n_tokens_content))
 g + geom_histogram(bins = 50)
 ```
 
-![](MondayAnalysis_files/figure-gfm/predictor%20histograms-3.png)<!-- -->
+![](ThursdayAnalysis_files/figure-gfm/predictor%20histograms-3.png)<!-- -->
 
 Because of this, when selecting for models, it is advised to standardize
 (that is, center and scale) predictor values prior to fitting the
@@ -175,17 +175,17 @@ following:
 lm_fit$results
 ```
 
-    ##   intercept      RMSE Rsquared       MAE     RMSESD RsquaredSD       MAESD
-    ## 1      TRUE 0.3959899 0.110715 0.2928533 0.01392034  0.0144339 0.005526694
+    ##   intercept      RMSE  Rsquared       MAE      RMSESD RsquaredSD       MAESD
+    ## 1      TRUE 0.3791318 0.1112899 0.2783085 0.008265218 0.02211228 0.004874485
 
 ``` r
 rf_fit$results
 ```
 
     ##   mtry      RMSE  Rsquared       MAE      RMSESD RsquaredSD       MAESD
-    ## 1    3 0.3884975 0.1448962 0.2893699 0.008642456 0.01239923 0.004042702
-    ## 2    5 0.3883492 0.1438031 0.2893785 0.008582747 0.01125974 0.004226203
-    ## 3   10 0.3886497 0.1419615 0.2894178 0.008602275 0.01169789 0.004130390
+    ## 1    3 0.3726072 0.1422971 0.2750105 0.007799037 0.02076381 0.004730043
+    ## 2    5 0.3728759 0.1395056 0.2750581 0.008160413 0.02119313 0.005277744
+    ## 3   10 0.3735000 0.1359655 0.2757981 0.007911022 0.01882054 0.005327836
 
 The model with higher `Rsquared` value and lower `RMSE` value is the
 better performer on the training data (which model is better may vary
@@ -201,7 +201,7 @@ lm_mspe <- mean((newsDataTest$shares - newsLmPred)^2)
 lm_mspe
 ```
 
-    ## [1] 0.1571801
+    ## [1] 0.1426157
 
 ``` r
 newsRfPred <- predict(rf_fit, newdata = newsDataTest)
@@ -209,10 +209,10 @@ rf_mspe <- mean((newsDataTest$shares - newsRfPred)^2)
 rf_mspe
 ```
 
-    ## [1] 0.1529726
+    ## [1] 0.1407351
 
 Here we compare the mean-square prediction error on the log-scaled
 target variable `shares`: the multiple linear regression model has a
-MSPE of 0.15718 and the Random Forest regression model has a MSPE of
-0.15297. The model with lower MSPE is the better performer on the
+MSPE of 0.14262 and the Random Forest regression model has a MSPE of
+0.14074. The model with lower MSPE is the better performer on the
 testing data set.

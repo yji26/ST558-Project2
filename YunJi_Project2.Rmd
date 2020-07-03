@@ -28,7 +28,7 @@ The purpose of this vignette is to compare the prediction accuracy of two types 
 ## Build Automation
 I use the following code to generate data and fitted models for each day of the week.
 
-```{r automation, results = "hide"}
+```{r automation, results = "hide", cache = TRUE}
 days <- c("Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday")
 output_file <- paste0(days, "Analysis.md")
 params <- lapply(days, FUN = function(x){list(day = x)})
@@ -46,7 +46,7 @@ apply(reports, MARGIN = 1,
 
 ## Day of Week Models
 
-The Markdown files for each day of the week are linked below.
+The Markdown files for each day of the week are linked below. Each day's vignette contains some exploration of the data, along with model fitting on the split training data set and model evaluation on the testing data set.
 
 * [Monday Models](MondayAnalysis.md)
 
