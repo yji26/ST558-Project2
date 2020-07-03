@@ -41,8 +41,16 @@ apply(reports, MARGIN = 1,
 
 The Markdown files for each day of the week are linked below.
 
-[Monday Models](MondayAnalysis.md) [Tuesday Models](TuesdayAnalysis.md)
-[Wednesday Models](WednesdayAnalysis.md) [Thursday
-Models](ThursdayAnalysis.md) [Friday Models](FridayAnalysis.md)
-[Saturday Models](SaturdayAnalysis.md) [Sunday
-Models](SundayAnalysis.md)
+  - [Monday Models](MondayAnalysis.md)
+
+  - [Tuesday Models](TuesdayAnalysis.md)
+
+  - [Wednesday Models](WednesdayAnalysis.md)
+
+  - [Thursday Models](ThursdayAnalysis.md)
+
+  - [Friday Models](FridayAnalysis.md)
+
+  - [Saturday Models](SaturdayAnalysis.md)
+
+  - [Sunday Models](SundayAnalysis.md)
