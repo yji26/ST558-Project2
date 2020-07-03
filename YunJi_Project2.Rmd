@@ -44,8 +44,7 @@ apply(reports, MARGIN = 1,
 )
 ```
 
-## Day of Week Models
-
+## Day of the Week Models
 The model vignettes for each day of the week are linked below. Each day's vignette contains data exploration, along with model fitting on the training data set and model evaluation for predicting the testing data set.
 
 * [Monday Models](MondayAnalysis.html)
@@ -62,4 +61,14 @@ The model vignettes for each day of the week are linked below. Each day's vignet
 
 * [Sunday Models](SundayAnalysis.html)
 
+## Model Selection
+Comparing the pair of linear regression and Random Forest models for each of the seven days of the week, I find that on the testing set predictions, the root mean-square prediction errors between the two models are fairly close. For each day's data set, my Random Forest model does slightly better than the linear regression model, however this comes at the cost of interpretability. Linear regressions have coefficients and confidence intervals that provide a reasonable range for weighing each predictor variable. Random Forest allows for relative feature importance between predictor variables, but due to being an ensemble method, Random Forest's feature importance does not tell you in a straightforward way a feature's relationship to the target variable or about the effects of feature interactions on the outcome.
 
+So in this case, choosing one model over the other as a predictor comes down to the needs of the model consumer. If prediction accuracy is valued and transparency is not critical, as is often the case in an industry like marketing, we're better off with the Random Forest model. Conversely, if interpretability is more important, such as in more regulated industries like insurance, a linear regression model that can get you most of the way there *and* can be easily explained would be more valuable.
+
+## Conclusions
+A critical aspect to good data science is the need to models are kept up-to-date. In many instances models are trained to predict people's behavior, and often that behavior will change over time as a result of new regulations, shifting consumer preferences or changing reward incentives for various economic activities. The way to keep models current is to hold back some of your data from training and use it to evaluate the prediction accuracy of your fitted models. The evaluation metric may differ depending on the nature of the predictions, i.e. classification vs. regression, or prioritizing false positives/negatives over a general misclassification rate. For this project, I use root mean-square error (RMSE) between predicted and actual values of the log of `shares`.
+
+Comparing the difference in RMSE between the training and testing set predictions, I find no consistent bias going from training to testing. On some days of the week the RMSPE from the testing set predictions are slightly above the training RMSE for a given model, and on other days the opposite is true. This fact holds for both linear and nonlinear models. The only large anomaly from my vignettes comes from the Tuesday data set, where the RMSE of the linear regression model on the training set is 2.45826 and the RMSPE of the same model on the testing set is 0.38327. This may be caused by an extreme outlier for one of the rows in the training set, and a deeper dive could reveal additional insights that may help improve the model.
+
+In this project I think prediction accuracy should be valued more than interpretability, and taking the aforementioned factors into account, I would use a Random Forest regression model to fit a predictor for each day of the week.
