@@ -10,15 +10,17 @@ params:
 ---
 
 ## Data Set Information
-The data set used in this project consists of 58 numerical predictor variables along with 2 informational fields; the target for the data set is the column `shares`, a measure of an article's popularity.
+The news article popularity data set used in this project consists of 58 numerical predictor variables along with 2 informational fields; the target for the data set is the column `shares`, a measure of an article's popularity.
 
-Seven columns from the data set are indicator values for the day of week that an article is published; these columns are named `weekday_is_monday`, `weekday_is_tuesday`, etc. For each weekday, I shall create a separate set of models to predict the `shares` value. The follow code will load the data set, filter on a specific day of week, then split the resulting data 70/30 into training and testing data sets. The training set will be used for training the linear and non-linear regression models, and the testing set for comparing which of the models has a higher prediction accuracy.
+Seven columns from the data set are indicator values for the day of week that an article is published; these columns are named `weekday_is_monday`, `weekday_is_tuesday`, etc. For each weekday, I created a pair of linear and nonlinear regression models to predict the numerical value of `shares`. The code below loads the data set, filters on a specific day of week according to the parameter variable `params$day`, then splits the resulting data 70/30 into training and testing data sets. The training set is used for training the two regression models, and the testing set is used for comparing which of the models has a higher prediction accuracy.
+
+First I load the raw data from a stored file in my repository into a data frame in R.
 
 ```{r load news data}
 newsData <- read_csv("./Data/OnlineNewsPopularity.csv")
 ```
 
-Some columns can be removed to reduce the size of the data. Column `url` merely contains the text URL for the article and is not needed. Column `timedelta` represents the number of days between article publication and data acquisition; although this can potentially be used to detect the site's popularity over time, the data dictionary describes this as non-predictive data and therefore I will also exclude it from the modeling data. Column `is_weekend` is made redundant when the data is split by day of week, since for any given day the column value will be either all zeroes or all ones. Columns `rate_positive_words` and `rate_negative_words` represent the proportion of positive and negative words among all non-neutral words, and always sum to 1; therefore, one of these columns can be removed without any loss of information, and I choose to remove `rate_negative_words`.
+Some columns of the data frame may be removed to reduce the size of the data. Column `url` merely contains the text URL for the article and is not needed. Column `timedelta` represents the number of days between article publication and data acquisition; although this can potentially be used to detect the site's popularity over time, the data dictionary describes this as non-predictive data and therefore I also exclude it from the modeling data. Column `is_weekend` is made redundant when the data is split by day of week, since for any given day its column value will be either all zeroes or all ones, and therefore not useful for prediction. Columns `rate_positive_words` and `rate_negative_words` represent the proportion of positive and negative words among all non-neutral words, and always sum to 1; one of them may be removed without any loss of information, and I choose to remove `rate_negative_words`.
 
 ```{r remove columns}
 newsData <- newsData %>%
@@ -26,7 +28,7 @@ newsData <- newsData %>%
 ```
 
 ## Filter for `r params$day` Data
-Next I filter for the day of week, then remove the `weekday_is_*` columns.
+Next I filter rows for the day of week based on parameter value `params$day`, then remove the `weekday_is_*` columns from the data frame. This is the resulting data set right before being split into training and testing sets.
 
 ```{r day of week filtering}
 dayOfWeek <- params$day
@@ -37,7 +39,65 @@ newsDataFiltered <- newsData %>%
   select(!starts_with("weekday_is_"))
 ```
 
-Finally I split the resulting data into training and testing sets.
+## Exploratory Data Analysis
+Inputs to the models require that all columns have numerical non-null values. Make sure this is true.
+
+```{r data validation}
+summary(newsDataFiltered)
+```
+
+Indeed, it can be verified that the data fit these criteria, so no further data cleaning is required. The data is not the same from one day of week to another, but certain observations hold across all.
+
+First, let us examine the distribution of the target variable `shares`.
+
+```{r shares histogram}
+g <- ggplot(data = newsDataFiltered, aes(x = shares))
+g + geom_histogram(bins = 50) +
+  labs(title = paste0("Histogram of Shares for ", dayOfWeek),
+       x = "Shares", y = "Count") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+Values of `shares` appear to follow a power-law distribution, having a long tail consisting of a few very popular articles that receive an outsized share of views. Therefore for regression it may be better to transform the target variable using a logarithmic function.
+
+```{r target transformation}
+newsDataFiltered <- newsDataFiltered %>%
+  mutate(shares = log10(shares))
+
+g <- ggplot(data = newsDataFiltered, aes(x = shares))
+g + geom_histogram(bins = 50) +
+  labs(title = paste0("Histogram of Log-Adjusted Shares for ", dayOfWeek),
+       x = "Log10 of Shares", y = "Count") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+The log-adjusted distribution shows that news articles with middling scores are most frequent, and the frequency tapers off as the shares go to the extremes on either side. With this distribution for the target variable, a regression model (rather than classification model with two categories) would be appropriate.
+
+From the summary of the data frame, we observe that the range of values for the predictor columns vary: some columns such as `global_subjectivity` are proportions and are limited to continuous values between 0 and 1, some indicator values like `data_channel_is_world` have only integer values 0 or 1, and others like `n_tokens_content` are raw counts which are natural numbers with no theoretical upper bound.
+
+```{r predictor histograms}
+g <- ggplot(data = newsDataFiltered, aes(x = global_subjectivity))
+g + geom_histogram(bins = 10) +
+  labs(title = paste0("Log-Adjusted Histogram of global_subjectivity for ", dayOfWeek),
+       y = "Count") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+g <- ggplot(data = newsDataFiltered, aes(x = data_channel_is_world))
+g + geom_histogram(bins = 2) +
+  labs(title = paste0("Log-Adjusted Histogram of data_channel_is_world for ", dayOfWeek),
+       y = "Count") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+g <- ggplot(data = newsDataFiltered, aes(x = n_tokens_content))
+g + geom_histogram(bins = 50) +
+  labs(title = paste0("Log-Adjusted Histogram of n_tokens_content for ", dayOfWeek),
+       y = "Count") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+Because of this, when selecting for models, it is advised to standardize (that is, center and scale) all predictor values prior to fitting the models. With this many predictor variables it would be difficult to tease out strong univariate relationships between a single predictor and the target variable, regardless of other predictor values. Therefore it is advisible to not exclude any predictor variable from the models. And while there is a chance of overfitting, especially for the nonlinear model, if tuning parameters and methodology are well-chosen, this risk may be minimized.
+
+As a last step before modeling, I split the news data into training and testing sets in a 70-to-30 proportion.
 
 ```{r train test split}
 set.seed(seed)
@@ -47,46 +107,8 @@ newsDataTrain <- newsDataFiltered[train, ]
 newsDataTest <- newsDataFiltered[test, ]
 ```
 
-## Summary of Training Data
-The training data will not be the same from one day of week to another, but certain observations hold across all.
-
-First, we can examine the distribution of the target variable `shares`.
-
-```{r shares histogram}
-g <- ggplot(data = newsDataTrain, aes(x = shares))
-g + geom_histogram(bins = 50)
-```
-
-Values of `shares` appear to follow a power-law distribution where a few very popular articles receive an outsized share of views. Therefore for regression it may be better to transform the target variable using a logarithmic function.
-
-```{r target transformation}
-newsDataTrain <- newsDataTrain %>%
-  mutate(shares = log10(shares))
-
-newsDataTest <- newsDataTest %>%
-  mutate(shares = log10(shares))
-
-g <- ggplot(data = newsDataTrain, aes(x = shares))
-g + geom_histogram(bins = 50)
-```
-
-The range of values for the predictor columns vary: some columns such as `global_subjectivity` are proportions and are limited to values between 0 and 1, some indicator values like `data_channel_is_world` only have values 0 or 1, and others like `n_tokens_content` are raw counts which are natural numbers with no theoretical upper bound.
-
-```{r predictor histograms}
-g <- ggplot(data = newsDataTrain, aes(x = global_subjectivity))
-g + geom_histogram(bins = 10)
-
-g <- ggplot(data = newsDataTrain, aes(x = data_channel_is_world))
-g + geom_histogram(bins = 2)
-
-g <- ggplot(data = newsDataTrain, aes(x = n_tokens_content))
-g + geom_histogram(bins = 50)
-```
-
-Because of this, when selecting for models, it is advised to standardize (that is, center and scale) predictor values prior to fitting the models.
-
 ## Modeling and Cross-Validation
-Two regression models are fitted to the training data: a multiple linear regression model and a non-linear Random Forest regression model. To tune these models, I perform three repeated 5-fold cross-validations from the `caret` package. Cross-validation is used to limit overfitting on the training data, as in each trial one of the folds is held out as a validation set while the remaining folds are combined and used to train. Besides centering and scaling, the linear regression model uses the package default options, while for the Random Forest model, I specified possible tree depths to be 3, 5 or 10, as I found that deep trees in conjunction with repeated CV took up a lot of computation time on my PC.
+Two regression models are fitted to the training data: a multiple linear regression model and a nonlinear Random Forest regression model. To tune these models, I perform three repeated 5-fold cross-validations from the `caret` package. Cross-validation is used to limit overfitting on the training data, because in each CV one of the folds is held out as a validation set while the remaining folds are combined and used to train. Besides centering and scaling, the linear regression model uses the package default options, while for the Random Forest model, I specified tree depths to be 3, 5 or 10, because deeper trees can be prone to overfitting and take up a lot of computation time.
 
 ```{r model fitting}
 set.seed(seed)
@@ -104,7 +126,7 @@ rf_fit <- train(shares ~ .,
                 method = "rf",
                 trControl = trctrl,
                 preProcess = c("center", "scale"),
-                tuneGrid = expand.grid(mtry = c(3,5,10))
+                tuneGrid = expand.grid(mtry = c(3, 5, 10))
 )
 ```
 
@@ -121,12 +143,14 @@ The model with higher `Rsquared` value and lower `RMSE` value is the better perf
 
 ```{r model testing performance}
 newsLmPred <- predict(lm_fit, newdata = newsDataTest)
-lm_mspe <- mean((newsDataTest$shares - newsLmPred)^2)
-lm_mspe
+lm_rmspe <- sqrt(mean((newsDataTest$shares - newsLmPred)^2))
+lm_rmspe
 
 newsRfPred <- predict(rf_fit, newdata = newsDataTest)
-rf_mspe <- mean((newsDataTest$shares - newsRfPred)^2)
-rf_mspe
+rf_rmspe <- sqrt(mean((newsDataTest$shares - newsRfPred)^2))
+rf_rmspe
 ```
 
-Here we compare the mean-square prediction error on the log-scaled target variable `shares`: the multiple linear regression model has a MSPE of `r round(lm_mspe, 5)` and the Random Forest regression model has a MSPE of `r round(rf_mspe, 5)`. The model with lower MSPE is the better performer on the testing data set.
+Here we compare the root mean-square prediction error on the log-scaled target variable `shares`: the multiple linear regression model has RMSPE of `r round(lm_rmspe, 5)` and the Random Forest regression model has RMSPE of `r round(rf_rmspe, 5)`. The model with lower RMSPE is the better performer on the testing data set.
+
+To test whether the models could be overfit for the training data, we compare the root mean-square prediction error against the root mean-square error from the training data set. For the linear regression model the training RMSE is `r round(lm_fit$results$RMSE, 5)` and for the Random Forest model the RMSE is `r round(min(rf_fit$results$RMSE), 5)`. For the models to not be overfit, each model's training RMSE and testing RMSPE values ought to be close to each other.
