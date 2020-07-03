@@ -39,18 +39,21 @@ apply(reports, MARGIN = 1,
 
 ## Day of Week Models
 
-The Markdown files for each day of the week are linked below.
+The Markdown files for each day of the week are linked below. Each day’s
+vignette contains some exploration of the data, along with model fitting
+on the split training data set and model evaluation on the testing data
+set.
 
-  - [Monday Models](MondayAnalysis.md)
+  - [Monday Models](MondayAnalysis.html)
 
-  - [Tuesday Models](TuesdayAnalysis.md)
+  - [Tuesday Models](TuesdayAnalysis.html)
 
-  - [Wednesday Models](WednesdayAnalysis.md)
+  - [Wednesday Models](WednesdayAnalysis.html)
 
-  - [Thursday Models](ThursdayAnalysis.md)
+  - [Thursday Models](ThursdayAnalysis.html)
 
-  - [Friday Models](FridayAnalysis.md)
+  - [Friday Models](FridayAnalysis.html)
 
-  - [Saturday Models](SaturdayAnalysis.md)
+  - [Saturday Models](SaturdayAnalysis.html)
 
-  - [Sunday Models](SundayAnalysis.md)
+  - [Sunday Models](SundayAnalysis.html)
