@@ -69,15 +69,19 @@ data set.
 Comparing the pair of linear regression and Random Forest models for
 each of the seven days of the week, I find that on the testing set
 predictions, the root mean-square prediction errors between the two
-models are fairly close. For each day’s data set, my Random Forest model
-does slightly better than the linear regression model, however this
-comes at the cost of interpretability. Linear regressions have
-coefficients and confidence intervals that provide a reasonable range
-for weighing each predictor variable. Random Forest allows for relative
-feature importance between predictor variables, but due to being an
-ensemble method, Random Forest’s feature importance does not tell you in
-a straightforward way a feature’s relationship to the target variable or
-about the effects of feature interactions on the outcome.
+models are fairly close. Sunday articles generated the most accurate
+predictions, while Monday articles generated the least accurate. But
+overall the inter-day differences are not large.
+
+For each day’s data set, my Random Forest model does slightly better
+than the linear regression model, however this comes at the cost of
+interpretability. Linear regressions have coefficients and confidence
+intervals that provide a reasonable range for weighing each predictor
+variable. Random Forest allows for relative feature importance between
+predictor variables, but due to being an ensemble method, Random
+Forest’s feature importance does not tell you in a straightforward way
+a feature’s relationship to the target variable or about the effects of
+feature interactions on the outcome.
 
 So in this case, choosing one model over the other as a predictor comes
 down to the needs of the model consumer. If prediction accuracy is
