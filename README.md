@@ -4,7 +4,7 @@ Yun Ji
 7/3/2020
 
   - [Introduction](#introduction)
-  - [Build Automation](#build-automation)
+  - [R Markdown Automation](#r-markdown-automation)
   - [Day of the Week Models](#day-of-the-week-models)
   - [Model Selection](#model-selection)
   - [Conclusions](#conclusions)
@@ -19,13 +19,13 @@ of a multiple linear regression model and a nonlinear Random Forest
 regression model. The data description and download links can be [found
 here](https://archive.ics.uci.edu/ml/datasets/Online+News+Popularity#).
 
-## Build Automation
+## R Markdown Automation
 
 I use the following code to generate data and fitted models for each day
 of the week. The `apply` function calls another R Markdown file
-(`YunJi_Project2_DayOfWeekModel.Rmd`) which contains the code needed to
-import, explore, clean, filter, split, and model the news popularity
-data for each day.
+[`YunJi_Project2_DayOfWeekModel.Rmd`](https://github.com/yji26/ST558-Project2/blob/master/YunJi_Project2_DayOfWeekModel.Rmd)
+which contains the code needed to import, explore, clean, filter, split,
+and model the news popularity data for each day.
 
 ``` r
 days <- c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
