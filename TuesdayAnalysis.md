@@ -243,7 +243,7 @@ theoretical upper bound.
 ``` r
 g <- ggplot(data = newsDataFiltered, aes(x = global_subjectivity))
 g + geom_histogram(bins = 10) +
-  labs(title = paste0("Log-Adjusted Histogram of global_subjectivity for ", dayOfWeek),
+  labs(title = paste0("Histogram of global_subjectivity for ", dayOfWeek),
        y = "Count") +
   theme(plot.title = element_text(hjust = 0.5))
 ```
@@ -253,7 +253,7 @@ g + geom_histogram(bins = 10) +
 ``` r
 g <- ggplot(data = newsDataFiltered, aes(x = data_channel_is_world))
 g + geom_histogram(bins = 2) +
-  labs(title = paste0("Log-Adjusted Histogram of data_channel_is_world for ", dayOfWeek),
+  labs(title = paste0("Histogram of data_channel_is_world for ", dayOfWeek),
        y = "Count") +
   theme(plot.title = element_text(hjust = 0.5))
 ```
@@ -263,7 +263,7 @@ g + geom_histogram(bins = 2) +
 ``` r
 g <- ggplot(data = newsDataFiltered, aes(x = n_tokens_content))
 g + geom_histogram(bins = 50) +
-  labs(title = paste0("Log-Adjusted Histogram of n_tokens_content for ", dayOfWeek),
+  labs(title = paste0("Histogram of n_tokens_content for ", dayOfWeek),
        y = "Count") +
   theme(plot.title = element_text(hjust = 0.5))
 ```
